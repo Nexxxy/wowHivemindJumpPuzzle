@@ -36,9 +36,9 @@ def execute_cmd(sourceNode, cmd) :
               
     if (cmd[0] == "#" ) :
         if target in nx.neighbors(spawn_db, sourceNode) :            
-            spawn_db.remove_edge(source,target)
-        if target in nx.neighbors(remove_db, source) :
-            remove_db.remove_edge(source,target)
+            spawn_db.remove_edge(sourceNode,target)
+        if target in nx.neighbors(remove_db, sourceNode) :
+            remove_db.remove_edge(sourceNode,target)
         print ("delete  : ", target)
     elif (cmd[0] == "+" ) :
         spawn_db.add_edge(sourceNode, target, label="+")

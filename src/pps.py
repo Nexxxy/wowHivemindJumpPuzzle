@@ -14,7 +14,6 @@ import copy
 #sys.setrecursionlimit(10**6)
 
 import sys
-from tkinter.tix import LabelEntry
 sys.setrecursionlimit(999999)
 
 
@@ -328,7 +327,7 @@ def move_player_to(field,pLocs,player,targetLoc) :
             print ("got no information about", targetLoc)
             return True, True
         elif (ForcedDestination != None and ForcedDestination == targetLoc) :
-            print ("found path to", targetLoc)
+            #print ("found path to", targetLoc)
             return True, True
         else :
             pass
@@ -340,7 +339,7 @@ def move_player_to(field,pLocs,player,targetLoc) :
 
 def hashDics(field,pLocs) :
     sortedField = sorted(list(field.keys()))
-    sortedPlayer = sorted(list(pLocs.values()))
+    sortedPlayer = sorted(list(pLocs.values()))    
     retVal = ""
     for i in sortedField :
         retVal += i
@@ -466,11 +465,11 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     field = copy.deepcopy(field)
     pLocs = copy.deepcopy(pLocs) 
     move_player_to(field, pLocs, p1, "A5")
-    curNode = hashDics(field, pLocs)
-    depth = depth + 1
-    bruteTree[curNode] = {parentEntry : rootNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}
+    curNode = hashDics(field, pLocs)    
+    bruteTree[curNode] = {parentEntry : rootNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}    
     # add the graph edge
     brute_graph.add_edge(curNode, rootNode, label =  str(p1) + " > " + str(forward) + " to " + pLocs[p1], weigth = depth)
+    depth = depth + 1
     # ok throw in first child !
     while (curNode != rootNode) :  
         itcounter = itcounter + 1 
@@ -513,51 +512,58 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                 continue   
             dir = get_dir_from_path(pLocs[p], toDoList[p][0])   
             weMoved, weFoundSomething = move_player_to(field, pLocs, p, toDoList[p][0])                 # ok lets to first available thing
+            #delete this move from current plan
+            del toDoList[p][0]
+            #reset alreadyVisited Var            
             alreadyVisited = False
             if (weMoved) :                
                 newNode = hashDics(field, pLocs)
                 #print(p, " moved from", bruteTree[curNode][pLocsEntry][p], " to " , toDoList[p][0], "hash: ", newNode)
                 #printField(field, pLocs)
                 if (newNode in brute_graph) :
-                    alreadyVisited = True
-                else :                    
-                    brute_graph.add_node(newNode)                    
+                    alreadyVisited = True                    
+                else :
+                    # since we cant calculate the next node dont add it !
+                    if (depth >= depthsearchMAX) :
+                        # but if we dont find a new location .. it doesnt matter !
+                        if not weFoundSomething :                            
+                            break
+                    # add the new new into our discoverylist                                            
+                    brute_graph.add_node(newNode)           
+                # add a edge between newNode and its new parent         
                 brute_graph.add_edge(newNode, curNode, label =  str(p) + " > " + str(dir) + " to " + pLocs[p], weigth = depth)
                 # check if we found a new plattform !
                 if (weFoundSomething) :
-                    newLoc = "NP:" +pLocs[p]                    
-                    brute_graph.add_node(newLoc)
+                    print ("\r", len(newPlattforms), end="")
+                    sys.stdout.flush()
+                    
+                    newLoc = "NP:" +pLocs[p]  
+                    if (not(newLoc in brute_graph)) :                  
+                        brute_graph.add_node(newLoc)
                     brute_graph.add_edge(newLoc, newNode, label =  "--" , weigth = depth + 1)
                     newPlattforms.append({"newLoc" : newLoc, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth})   
-                    alreadyVisited = True                 
+                    alreadyVisited = True   
                 
-                #delete this move from current plan
-                del toDoList[p][0]
+                
                 if (alreadyVisited) :
                     break
-                if (depth > depthsearchMAX) :
-                    break 
+                if (depth >= depthsearchMAX) :
+                    break               
+                #print ("-", depth)                
+                bruteTree[newNode] = {parentEntry : curNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}               
+                
                 #jump deeper into the tree
                 depth = depth+1
-                #add newNode to list
-                if newNode in bruteTree :
-                    if bruteTree[newNode][depthEntry] > depth : # update .. we found a better way
-                        bruteTree[newNode][parentEntry] = curNode
-                        bruteTree[newNode][fieldEntry] = field
-                        bruteTree[newNode][pLocsEntry] = pLocs
-                        bruteTree[newNode][depthEntry] = depth
-                else :
-                    # dont add a toDoList, thats our triggerpoint to generate it
-                    bruteTree[newNode] = {parentEntry : curNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}
-                
                 curNode = newNode
                 break         
             # if weMoved
             else :
-                print("this shouldnt happen!")
-                exit()
+                pass
+            print("this shouldnt happen!")
+            exit()
         # for p in playerList
         continue
+    print ("")
     print ("Iterations : ", itcounter)
     print ("maxdepth:", maxdepth)
     print ("solutions:",len(newPlattforms))
@@ -565,7 +571,13 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                               
                 
 
-    
+def getPathTo_v2(brute_graph, sourceNode, sinkNode) :
+    pathlist = list(nx.shortest_path(brute_graph, sourceNode, sinkNode, None))
+    path = []    
+    for index in range(len(pathlist)-1) :
+        path.append(brute_graph[pathlist[index]][pathlist[index+1]][0]["label"])
+    return path, len(pathlist)
+        
 
 
 def getPathTo(brute_graph, sourceNode, sinkNode) :
@@ -616,9 +628,10 @@ def main() :
     
     if (len(retlist) == 0) :
         print ("No solutions ..")
+        nx.write_gexf(brute_graph,"result.gexf")
     else :   
     
-        #nx.write_gexf(brute_graph,"result.gexf")
+        nx.write_gexf(brute_graph,"result.gexf")
     
         # search for min depth node
         mindepth = 9999999
@@ -629,13 +642,18 @@ def main() :
                 bestTargetIndex = index
         
         print ("best solution depth:", retlist[bestTargetIndex][depthEntry])
+        
+        
                         
         ######## reform output    
         playerNames = {p1 : "Gelb" , p2 : "Blau" , p3 : "Orange" , p4 : "Lila", p5 : "Gruen"}      
         pLocs = get_initial_player_loc_array()
-        lastplayer = ""
-        print ("\n\n-------- Path to: ", retlist[bestTargetIndex]["newLoc"])
-        pathway = reversed(getPathTo(brute_graph, retlist[bestTargetIndex]["newLoc"], starthash))        
+        lastplayer = ""      
+        
+        
+        pathway, depth = getPathTo_v2(brute_graph, retlist[bestTargetIndex]["newLoc"], starthash)
+        pathway = reversed(pathway)
+        print ("\n\n-------- Path to : ", retlist[bestTargetIndex]["newLoc"], " , len =", depth-2)        
         for step in pathway :
             #print (step)
             if (len(step) == len("1 > path_F to A5")) :
@@ -693,9 +711,9 @@ ForcedDepth = None
 if (len(sys.argv) == 1) :
     pass
 else :
-    if len(sys.argv) >= 1 : 
+    if len(sys.argv) >= 2 : 
         ForcedDestination = sys.argv[1].upper()
-    if len(sys.argv) >= 2 :
+    if len(sys.argv) >= 3 :
         ForcedDepth = int(sys.argv[2])
         
 
