@@ -9,6 +9,7 @@ Version 1.3
 import networkx as nx
 import threading
 import copy
+import gc
 #import resource, sys
 #resource.setrlimit(resource.RLIMIT_STACK, (2**29,-1))
 #sys.setrecursionlimit(10**6)
@@ -455,8 +456,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     toDoList = getNewEmptyToDoList()
     bruteTree = {}
     depth = 0
-    newPlattforms = []
-    maxdepth = 0
+    newPlattforms = []    
     itcounter = 0
 
     # ok first generate rootNode !
@@ -474,9 +474,11 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     depth = depth + 1
     # ok throw in first child !
     while (curNode != rootNode) :  
-        itcounter = itcounter + 1 
-        if maxdepth < depth :
-            maxdepth = depth             
+        itcounter += 1
+        if (itcounter % 200000 == 0) :
+            #print("garbagec",itcounter)
+            #sys.stdout.flush()            
+            gc.collect()             
         #step 1 : test for toDoList
         if toDoListEntry in bruteTree[curNode] :
             toDoList = bruteTree[curNode][toDoListEntry]
@@ -505,6 +507,8 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
             continue
         # ok, we got something to do ! lets move to the first thing in our List
         #step 3 : load field and pLocs
+        field = None
+        pLocs = None
         field = copy.deepcopy(bruteTree[curNode][fieldEntry])
         pLocs = copy.deepcopy(bruteTree[curNode][pLocsEntry])
         #step 4 : try to move there
@@ -579,8 +583,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
         # for p in playerList
         continue
     print ("")
-    print ("Iterations : ", itcounter)
-    print ("maxdepth:", maxdepth)
+    print ("Iterations : ", itcounter)    
     print ("solutions:",len(newPlattforms))
     return newPlattforms  
                               
@@ -644,10 +647,10 @@ def main() :
     
     if (len(retlist) == 0) :
         print ("No solutions ..")
-        nx.write_gexf(brute_graph,"result.gexf")
+        #nx.write_gexf(brute_graph,"result.gexf")
     else :   
     
-        nx.write_gexf(brute_graph,"result.gexf")
+        #nx.write_gexf(brute_graph,"result.gexf")
     
         # search for min depth node
         mindepth = 9999999
