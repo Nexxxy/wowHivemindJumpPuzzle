@@ -468,6 +468,8 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     curNode = hashDics(field, pLocs)    
     bruteTree[curNode] = {parentEntry : rootNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}    
     # add the graph edge
+    brute_graph.add_node(rootNode, depthEntry = 0)
+    brute_graph.add_node(curNode, depthEntry = 1)
     brute_graph.add_edge(curNode, rootNode, label =  str(p1) + " > " + str(forward) + " to " + pLocs[p1], weigth = depth)
     depth = depth + 1
     # ok throw in first child !
@@ -521,17 +523,30 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                 #print(p, " moved from", bruteTree[curNode][pLocsEntry][p], " to " , toDoList[p][0], "hash: ", newNode)
                 #printField(field, pLocs)
                 if (newNode in brute_graph) :
-                    alreadyVisited = True                    
+                    #print (brute_graph.node[newNode])
+                    if (depth >= brute_graph.node[newNode][depthEntry]) :
+                        alreadyVisited = True                        
+                    else :
+                        # ok we have to recalculate this whole tree .. cause we dropped that data :(
+                        #print ("depth failed cur:",depth,"vs",brute_graph.node[newNode][depthEntry])
+                        # update note !
+                        brute_graph.node[newNode][depthEntry] = depth
+                        pass                                                                                        
                 else :
                     # since we cant calculate the next node dont add it !
                     if (depth >= depthsearchMAX) :
                         # but if we dont find a new location .. it doesnt matter !
                         if not weFoundSomething :                            
                             break
-                    # add the new new into our discoverylist                                            
-                    brute_graph.add_node(newNode)           
-                # add a edge between newNode and its new parent         
-                brute_graph.add_edge(newNode, curNode, label =  str(p) + " > " + str(dir) + " to " + pLocs[p], weigth = depth)
+                    # add the new new into our discoverylist                                                                
+                    brute_graph.add_node(newNode, depthEntry = depth)           
+                # add a edge between newNode and its new parent      
+                if (curNode in nx.neighbors(brute_graph, newNode)) :
+                    #print ("bin hier", brute_graph[newNode][curNode])
+                    # update edge
+                    brute_graph[newNode][curNode]["weigth"] = depth
+                else :                              
+                    brute_graph.add_edge(newNode, curNode, label =  str(p) + " > " + str(dir) + " to " + pLocs[p], weigth = depth)
                 # check if we found a new plattform !
                 if (weFoundSomething) :
                     print ("\r", len(newPlattforms), end="")
@@ -575,7 +590,7 @@ def getPathTo_v2(brute_graph, sourceNode, sinkNode) :
     pathlist = list(nx.shortest_path(brute_graph, sourceNode, sinkNode, None))
     path = []    
     for index in range(len(pathlist)-1) :
-        path.append(brute_graph[pathlist[index]][pathlist[index+1]][0]["label"])
+        path.append(brute_graph[pathlist[index]][pathlist[index+1]]["label"])
     return path, len(pathlist), pathlist[1]
         
 
@@ -615,7 +630,8 @@ def main() :
     field = get_empty_field()
     pLocs = get_initial_player_loc_array()
 
-    brute_graph = nx.MultiDiGraph()
+    #brute_graph = nx.MultiDiGraph()
+    brute_graph = nx.DiGraph()
     starthash = hashDics(field, pLocs)
     retlist = []       
     
@@ -710,7 +726,7 @@ left = "path_L"
 right = "path_R"
 toDoListEntry = "toDoList"
 fieldEntry = "field"
-depthEntry = "depth"
+depthEntry = "depthEntry"
 pLocsEntry = "pLocs"
 parentEntry = "parent"
 
