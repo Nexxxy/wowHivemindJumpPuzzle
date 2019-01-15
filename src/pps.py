@@ -2,7 +2,7 @@
 Created on 08.01.2019
 
 @author: ernstm
-Version 1.2
+Version 1.3
 '''
 
 
@@ -541,7 +541,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                     if (not(newLoc in brute_graph)) :                  
                         brute_graph.add_node(newLoc)
                     brute_graph.add_edge(newLoc, newNode, label =  "--" , weigth = depth + 1)
-                    newPlattforms.append({"newLoc" : newLoc, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth})   
+                    newPlattforms.append({"newLoc" : newLoc, "last-node" : newNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth})   
                     alreadyVisited = True   
                 
                 
@@ -576,7 +576,7 @@ def getPathTo_v2(brute_graph, sourceNode, sinkNode) :
     path = []    
     for index in range(len(pathlist)-1) :
         path.append(brute_graph[pathlist[index]][pathlist[index+1]][0]["label"])
-    return path, len(pathlist)
+    return path, len(pathlist), pathlist[1]
         
 
 
@@ -622,7 +622,7 @@ def main() :
     #retList = do_recursive_bruteforce(None, None, None, field, pLocs, brute_graph)
     if (ForcedDepth == None ) :
     ###################################################################################################################################################
-        retlist = do_nonrecursive_bruteforce(brute_graph, 50)
+        retlist = do_nonrecursive_bruteforce(brute_graph, 100)
     else :
         retlist = do_nonrecursive_bruteforce(brute_graph, ForcedDepth)
     
@@ -650,10 +650,12 @@ def main() :
         pLocs = get_initial_player_loc_array()
         lastplayer = ""      
         
+        #print (retlist)
         
-        pathway, depth = getPathTo_v2(brute_graph, retlist[bestTargetIndex]["newLoc"], starthash)
+        pathway, depth, bestSolutionNode = getPathTo_v2(brute_graph, retlist[bestTargetIndex]["newLoc"], starthash)
         pathway = reversed(pathway)
-        print ("\n\n-------- Path to : ", retlist[bestTargetIndex]["newLoc"], " , len =", depth-2)        
+        print ("\n\n-------- Path to : ", retlist[bestTargetIndex]["newLoc"], " , len =", depth-2)
+        counter = 0        
         for step in pathway :
             #print (step)
             if (len(step) == len("1 > path_F to A5")) :
@@ -667,7 +669,8 @@ def main() :
                         if lastplayer != p :
                             lastplayer = p
                             print ("")
-                        print (playerNames[p] , "->", dir[5] , "to" , targetLoc) # , "\t pLocs:", pLocs)
+                        counter += 1
+                        print (counter, " : " , playerNames[p] , "->", dir[5] , "to" , targetLoc) # , "\t pLocs:", pLocs)
                         break;
                 if (found_a_step) :
                     pass
@@ -678,7 +681,15 @@ def main() :
             else :
                 print ("irgendwer muss droppen : " + step)
         print ("-------")
-        printField(retlist[bestTargetIndex][fieldEntry], retlist[bestTargetIndex][pLocsEntry])
+        #search for right field
+        
+        for solution in retlist :
+            if solution["last-node"] == bestSolutionNode :
+                field = solution[fieldEntry]
+                pLocs = solution[pLocsEntry] 
+                        
+        printField(field, pLocs)
+        #printField(retlist[bestTargetIndex][fieldEntry], retlist[bestTargetIndex][pLocsEntry])
 
     #print (hashDics(field, pLocs))
 
