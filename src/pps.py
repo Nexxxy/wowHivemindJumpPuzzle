@@ -10,6 +10,7 @@ import networkx as nx
 import threading
 import copy
 import gc
+import datetime
 #import resource, sys
 #resource.setrlimit(resource.RLIMIT_STACK, (2**29,-1))
 #sys.setrecursionlimit(10**6)
@@ -443,11 +444,11 @@ def do_recursive_bruteforce(parent, player, dir, field, pLocs, brute_graph, dept
     return
 
 def isToDoListEmpty(toDoList):
-    emptyToDoList = {p1 : [] , p2 : [], p3 : [], p4 : [], p5 : []}
+    emptyToDoList = {p1 : set() , p2 : set() , p3 : set() , p4 : set(), p5 : set()}
     return toDoList == emptyToDoList
 
 def getNewEmptyToDoList () :
-    return {p1 : [] , p2 : [], p3 : [], p4 : [], p5 : []}
+    return {p1 : set() , p2 : set() , p3 : set() , p4 : set() , p5 : set()}
                 
 
 def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
@@ -473,9 +474,13 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     brute_graph.add_edge(curNode, rootNode, label =  str(p1) + " > " + str(forward) + " to " + pLocs[p1], weigth = depth)
     depth = depth + 1
     # ok throw in first child !
+    now = datetime.datetime.now()
+    print("Start:", now.time())
+    sys.stdout.flush()
     while (curNode != rootNode) :  
         itcounter += 1
         if (itcounter % 200000 == 0) :
+            #print("Tick:",datetime.datetime.now().time())
             #print("garbagec",itcounter)
             #sys.stdout.flush()            
             gc.collect()             
@@ -485,7 +490,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
         else : # generate toDoList
             toDoList = getNewEmptyToDoList()
             for p in playerList :
-                toDoList[p] = get_available_paths_from_player(field, pLocs, p)
+                toDoList[p] = set(get_available_paths_from_player(field, pLocs, p))
             #printField(field, pLocs)
             #print ("avail Pathes: ", toDoList)                
             #save it
@@ -516,15 +521,16 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
             # check if p can do anything
             if len(toDoList[p]) == 0 :
                 continue   
-            dir = get_dir_from_path(pLocs[p], toDoList[p][0])   
-            weMoved, weFoundSomething = move_player_to(field, pLocs, p, toDoList[p][0])                 # ok lets to first available thing
+            targetNode = toDoList[p].pop()
+            dir = get_dir_from_path(pLocs[p], targetNode)   
+            weMoved, weFoundSomething = move_player_to(field, pLocs, p, targetNode)                 # ok lets to first available thing
             #delete this move from current plan
-            del toDoList[p][0]
+            # del toDoList[p][0] using pop now
             #reset alreadyVisited Var            
             alreadyVisited = False
             if (weMoved) :                
                 newNode = hashDics(field, pLocs)
-                #print(p, " moved from", bruteTree[curNode][pLocsEntry][p], " to " , toDoList[p][0], "hash: ", newNode)
+                #print(p, " moved from", bruteTree[curNode][pLocsEntry][p], " to " , targetNode, "hash: ", newNode)
                 #printField(field, pLocs)
                 if (newNode in brute_graph) :
                     #print (brute_graph.node[newNode])
@@ -585,6 +591,8 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     print ("")
     print ("Iterations : ", itcounter)    
     print ("solutions:",len(newPlattforms))
+    print("End  :", datetime.datetime.now().time())    
+    print("Dur  :", datetime.datetime.now() - now)
     return newPlattforms  
                               
                 
