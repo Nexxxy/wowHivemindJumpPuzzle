@@ -548,13 +548,13 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                     #print (brute_graph.node[newNode])
                     if (BOOSTME) :
                         if (isFinished in brute_graph.node[newNode]) :
-                            alreadyVisited = True                        
-                            break
+                            alreadyVisited = True                           
                         if (newNode in brute_graph.node[curNode][finishedPathesListEntry]) :
-                            alreadyVisited = True                        
-                            break
-                    if (depth >= brute_graph.node[newNode][depthEntry]) :
-                        brute_graph.node[curNode][finishedPathesListEntry].add(newNode)                        
+                            alreadyVisited = True                           
+                    if (depth > brute_graph.node[newNode][depthEntry]) :
+                        brute_graph.node[curNode][finishedPathesListEntry].add(newNode)
+                        alreadyVisited = True                        
+                    elif (depth == brute_graph.node[newNode][depthEntry]) :                        
                         alreadyVisited = True                        
                     else :
                         # ok we have to recalculate this whole tree .. cause we dropped that data :(                        
