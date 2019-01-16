@@ -444,11 +444,11 @@ def do_recursive_bruteforce(parent, player, dir, field, pLocs, brute_graph, dept
     return
 
 def isToDoListEmpty(toDoList):
-    emptyToDoList = {p1 : set() , p2 : set() , p3 : set() , p4 : set(), p5 : set()}
+    emptyToDoList = {p1 : [] , p2 : [] , p3 : [] , p4 : [] , p5 : []}
     return toDoList == emptyToDoList
 
 def getNewEmptyToDoList () :
-    return {p1 : set() , p2 : set() , p3 : set() , p4 : set() , p5 : set()}
+    return {p1 : [] , p2 : [] , p3 : [] , p4 : [] , p5 : []}
                 
 
 def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
@@ -491,7 +491,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
             toDoList = getNewEmptyToDoList()
             numAvailPathes = 0
             for p in playerList :
-                toDoList[p] = set(get_available_paths_from_player(field, pLocs, p))
+                toDoList[p] = get_available_paths_from_player(field, pLocs, p)
                 numAvailPathes += len(toDoList[p])
             #printField(field, pLocs)
             #print ("avail Pathes: ", toDoList)                
@@ -671,7 +671,7 @@ def main() :
     #retList = do_recursive_bruteforce(None, None, None, field, pLocs, brute_graph)
     if (ForcedDepth == None ) :
     ###################################################################################################################################################
-        retlist = do_nonrecursive_bruteforce(brute_graph, 100)
+        retlist = do_nonrecursive_bruteforce(brute_graph, 35)
     else :
         retlist = do_nonrecursive_bruteforce(brute_graph, ForcedDepth)
     
@@ -774,16 +774,7 @@ BOOSTME = True
 
 ForcedDestination = None
 ForcedDepth = None
-if (len(sys.argv) == 1) :
-    pass
-else :
-    if len(sys.argv) >= 2 : 
-        ForcedDestination = sys.argv[1].upper()
-    if len(sys.argv) >= 3 :
-        ForcedDepth = int(sys.argv[2])
-        
 
-print ("ForcedDestination : ", ForcedDestination)
 
 playerList = [p1,p2,p3,p4,p5]
 dirList = [forward, left, right, backward]
@@ -792,6 +783,18 @@ dirList = [forward, left, right, backward]
 path_db = nx.read_gexf("path.gexf")
 spawn_db = nx.read_gexf("spawn.gexf")
 remove_db = nx.read_gexf("remove.gexf")
+
+if (len(sys.argv) == 1) :
+    pass
+else :
+    if len(sys.argv) >= 2 :       
+        ForcedDepth = int(sys.argv[1])
+        print ("Forced Depth : ", ForcedDepth)
+    if len(sys.argv) >= 3 :
+        ForcedDestination = sys.argv[2].upper()
+        print ("Forced Destination : ", ForcedDestination)
+        
+
 
 sys.setrecursionlimit(9999999)
 threading.stack_size(0xF000000)
