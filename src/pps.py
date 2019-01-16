@@ -489,16 +489,28 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
             toDoList = bruteTree[curNode][toDoListEntry]
         else : # generate toDoList
             toDoList = getNewEmptyToDoList()
+            numAvailPathes = 0
             for p in playerList :
                 toDoList[p] = set(get_available_paths_from_player(field, pLocs, p))
+                numAvailPathes += len(toDoList[p])
             #printField(field, pLocs)
             #print ("avail Pathes: ", toDoList)                
             #save it
             bruteTree[curNode][toDoListEntry] = toDoList
+            brute_graph.node[curNode][numAvailPathesEntry] = numAvailPathes
+            if (finishedPathesListEntry not in brute_graph.node[curNode]) :
+                brute_graph.node[curNode][finishedPathesListEntry] = set()                            
         #step 2 : savecall : we have a toDoList
         if isToDoListEmpty(toDoList) :
             #we dont have anything to do -> jump to parent and delete our node
-            delNode = curNode
+            delNode = curNode       
+            parent = bruteTree[curNode][parentEntry]
+            # first update parent if this node is a deadend
+            if (brute_graph.node[curNode][numAvailPathesEntry] == len(brute_graph.node[curNode][finishedPathesListEntry])) :
+                brute_graph.node[curNode][isFinished] = True
+                brute_graph.node[parent][finishedPathesListEntry].add(curNode)
+            parent = None # delete ref !
+            # step to goto parent and delete curNode
             curNode = bruteTree[curNode][parentEntry]
             depth = depth - 1
             # delete delNode
@@ -534,13 +546,23 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                 #printField(field, pLocs)
                 if (newNode in brute_graph) :
                     #print (brute_graph.node[newNode])
+                    if (BOOSTME) :
+                        if (isFinished in brute_graph.node[newNode]) :
+                            alreadyVisited = True                        
+                            break
+                        if (newNode in brute_graph.node[curNode][finishedPathesListEntry]) :
+                            alreadyVisited = True                        
+                            break
                     if (depth >= brute_graph.node[newNode][depthEntry]) :
+                        brute_graph.node[curNode][finishedPathesListEntry].add(newNode)                        
                         alreadyVisited = True                        
                     else :
-                        # ok we have to recalculate this whole tree .. cause we dropped that data :(
-                        #print ("depth failed cur:",depth,"vs",brute_graph.node[newNode][depthEntry])
+                        # ok we have to recalculate this whole tree .. cause we dropped that data :(                        
                         # update note !
                         brute_graph.node[newNode][depthEntry] = depth
+                        if isFinished in brute_graph.node[newNode] :
+                            brute_graph.node[curNode][finishedPathesListEntry].add(newNode)
+                            alreadyVisited = True                                                 
                         pass                                                                                        
                 else :
                     # since we cant calculate the next node dont add it !
@@ -740,9 +762,15 @@ fieldEntry = "field"
 depthEntry = "depthEntry"
 pLocsEntry = "pLocs"
 parentEntry = "parent"
+numAvailPathesEntry = "numAvailPathes"
+finishedPathesListEntry = "finishedPathesList"
+isFinished = "isFinished"
+
+
 
 ############################################################################## Options
 enableDropping = False
+BOOSTME = True
 
 ForcedDestination = None
 ForcedDepth = None
