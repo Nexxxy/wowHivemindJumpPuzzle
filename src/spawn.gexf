@@ -6,7 +6,7 @@
     </attributes>
     <meta>
       <creator>NetworkX 2.2</creator>
-      <lastmodified>17/01/2019</lastmodified>
+      <lastmodified>18/01/2019</lastmodified>
     </meta>
     <nodes>
       <node id="S" label="S" />
@@ -282,6 +282,16 @@
         </attvalues>
       </edge>
       <edge id="34" source="F6" target="F3">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="0" source="G3" target="F2">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="1" source="G3" target="D7">
         <attvalues>
           <attvalue for="0" value="+" />
         </attvalues>

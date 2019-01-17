@@ -6,7 +6,7 @@
     </attributes>
     <meta>
       <creator>NetworkX 2.2</creator>
-      <lastmodified>17/01/2019</lastmodified>
+      <lastmodified>18/01/2019</lastmodified>
     </meta>
     <nodes>
       <node id="S" label="S" />
@@ -384,6 +384,11 @@
           <attvalue for="0" value="-" />
         </attvalues>
       </edge>
+      <edge id="0" source="B6" target="C3">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
       <edge id="0" source="B7" target="B3">
         <attvalues>
           <attvalue for="0" value="-" />
@@ -749,6 +754,21 @@
           <attvalue for="0" value="-" />
         </attvalues>
       </edge>
+      <edge id="0" source="F3" target="D3">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
+      <edge id="1" source="F3" target="D4">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
+      <edge id="2" source="F3" target="D8">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
       <edge id="0" source="F5" target="B8">
         <attvalues>
           <attvalue for="0" value="-" />
@@ -795,6 +815,11 @@
         </attvalues>
       </edge>
       <edge id="0" source="F7" target="F5">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
+      <edge id="0" source="G3" target="E1">
         <attvalues>
           <attvalue for="0" value="-" />
         </attvalues>
