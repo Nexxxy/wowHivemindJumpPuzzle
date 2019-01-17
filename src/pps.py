@@ -95,7 +95,7 @@ def get_available_paths_from_player(field, pLocs, player) :
 
 
 def printField(field, pLocs) :
-    lineLetter = ["A", "B", "C" , "D", "E" , "F" , "G" , "H"];
+    lineLetter = ["A", "B", "C" , "D", "E" , "F" , "G" , "H", "I", "J"];
 
     print ("\n------------------------------------------------------------------------------------------------")
     for col in range(1,10) :
