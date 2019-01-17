@@ -86,8 +86,10 @@ def get_available_paths_from_player(field, pLocs, player) :
             if (not (testLoc in pLocs.values())) :
                 availablePathes.append(testLoc) 
     if (pLocs[player] != "S") and ("S" in pLocs.keys()) :
-        if (enableDropping) :        
-            availablePathes.append("S")
+        if "G7" in pLocs.keys() :  
+            if pLocs[player] != "G7" :
+                if (enableDropping) :        
+                    availablePathes.append("S")
     return sorted(availablePathes)
 
 
@@ -200,7 +202,10 @@ def execute_despawns(field, pLocs, loc) :
 
 def execute_drop(field, pLocs, player):
     
-    if ["S", "S" , "S" , "S" ] == list(sorted(pLocs.keys())) :
+    if "S" in pLocs.keys() :
+        return False
+    
+    if "G7" in pLocs.keys() :
         return False
         
     for item in field.keys() :
@@ -210,8 +215,10 @@ def execute_drop(field, pLocs, player):
     
     pLocs[player] = "S"
     
-    for p in players :
+    for p in playerList :
         if pLocs[p] == "S" :
+            pass
+        if pLocs[p] == "G7" :
             pass
         else :
             field[pLocs[p]] = plattform
@@ -467,7 +474,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     pLocs = copy.deepcopy(pLocs) 
     move_player_to(field, pLocs, p1, "A5")
     curNode = hashDics(field, pLocs)    
-    bruteTree[curNode] = {parentEntry : rootNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}    
+    bruteTree[curNode] = {parentEntry : rootNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth, maxDepthEntry : depthsearchMAX, collectedBoosterEntry : set()}    
     # add the graph edge
     brute_graph.add_node(rootNode, depthEntry = 0)
     brute_graph.add_node(curNode, depthEntry = 1)
@@ -477,13 +484,17 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     now = datetime.datetime.now()
     print("Start:", now.time())
     sys.stdout.flush()
-    while (curNode != rootNode) :  
+    running = True
+    while (curNode != rootNode and running) :  
         itcounter += 1
         if (itcounter % 200000 == 0) :
             #print("Tick:",datetime.datetime.now().time())
             #print("garbagec",itcounter)
             #sys.stdout.flush()            
-            gc.collect()             
+            gc.collect()
+        #step 0 : get some data refs
+        depthsearchMAX = bruteTree[curNode][maxDepthEntry]
+        collectedBoosters = bruteTree[curNode][collectedBoosterEntry].copy()               
         #step 1 : test for toDoList
         if toDoListEntry in bruteTree[curNode] :
             toDoList = bruteTree[curNode][toDoListEntry]
@@ -518,7 +529,8 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
             del bruteTree[delNode][fieldEntry]
             del bruteTree[delNode][pLocsEntry]
             del bruteTree[delNode][depthEntry]
-            del bruteTree[delNode][toDoListEntry]            
+            del bruteTree[delNode][toDoListEntry]
+            del bruteTree[delNode][maxDepthEntry]            
             del bruteTree[delNode]
             del delNode            
             continue
@@ -545,16 +557,15 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                 #print(p, " moved from", bruteTree[curNode][pLocsEntry][p], " to " , targetNode, "hash: ", newNode)
                 #printField(field, pLocs)
                 if (newNode in brute_graph) :
-                    #print (brute_graph.node[newNode])
-                    if (BOOSTME) :
-                        if (isFinished in brute_graph.node[newNode]) :
-                            alreadyVisited = True                           
-                        if (newNode in brute_graph.node[curNode][finishedPathesListEntry]) :
-                            alreadyVisited = True                           
+                    #print (brute_graph.node[newNode])                    
+                    if (isFinished in brute_graph.node[newNode]) :
+                        alreadyVisited = True                           
+                    if (newNode in brute_graph.node[curNode][finishedPathesListEntry]) :
+                        alreadyVisited = True                           
                     if (depth > brute_graph.node[newNode][depthEntry]) :
                         brute_graph.node[curNode][finishedPathesListEntry].add(newNode)
                         alreadyVisited = True                        
-                    elif (depth == brute_graph.node[newNode][depthEntry]) :                        
+                    elif (depth == brute_graph.node[newNode][depthEntry]) :                                                
                         alreadyVisited = True                        
                     else :
                         # ok we have to recalculate this whole tree .. cause we dropped that data :(                        
@@ -581,23 +592,31 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                     brute_graph.add_edge(newNode, curNode, label =  str(p) + " > " + str(dir) + " to " + pLocs[p], weigth = depth)
                 # check if we found a new plattform !
                 if (weFoundSomething) :
+                    #print info
                     print ("\r", len(newPlattforms), end="")
-                    sys.stdout.flush()
+                    sys.stdout.flush()                                       
                     
                     newLoc = "NP:" +pLocs[p]  
                     if (not(newLoc in brute_graph)) :                  
                         brute_graph.add_node(newLoc)
                     brute_graph.add_edge(newLoc, newNode, label =  "--" , weigth = depth + 1)
                     newPlattforms.append({"newLoc" : newLoc, "last-node" : newNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth})   
-                    alreadyVisited = True   
-                
+                    alreadyVisited = True
+                    #quit if there is a maxsolution option set
+                    if (maxSolutions != None) :
+                        if len(newPlattforms) >= maxSolutions :
+                            running = False                   
                 
                 if (alreadyVisited) :
                     break
                 if (depth >= depthsearchMAX) :
                     break               
-                #print ("-", depth)                
-                bruteTree[newNode] = {parentEntry : curNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth}               
+                #print ("-", depth)  
+                if targetNode in boosterList.keys() and targetNode not in collectedBoosters:
+                    depthsearchMAX += boosterList[targetNode]
+                    collectedBoosters.add(targetNode)
+                          
+                bruteTree[newNode] = {parentEntry : curNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth, maxDepthEntry : depthsearchMAX, collectedBoosterEntry : collectedBoosters }               
                 
                 #jump deeper into the tree
                 depth = depth+1
@@ -719,7 +738,7 @@ def main() :
                             lastplayer = p
                             print ("")
                         counter += 1
-                        print (counter, " : " , playerNames[p] , "->", dir[5] , "to" , targetLoc) # , "\t pLocs:", pLocs)
+                        print (format(counter, '2.0f'), " : " , playerNames[p] , "->", dir[5] , "to" , targetLoc) # , "\t pLocs:", pLocs)
                         break;
                 if (found_a_step) :
                     pass
@@ -760,17 +779,20 @@ right = "path_R"
 toDoListEntry = "toDoList"
 fieldEntry = "field"
 depthEntry = "depthEntry"
+maxDepthEntry = "maxDepth"
 pLocsEntry = "pLocs"
 parentEntry = "parent"
 numAvailPathesEntry = "numAvailPathes"
 finishedPathesListEntry = "finishedPathesList"
+collectedBoosterEntry = "collectedBoosters"
 isFinished = "isFinished"
+maxSolutions = None
+boosterList = {} # "D6" : 4
 
 
 
 ############################################################################## Options
 enableDropping = False
-BOOSTME = True
 
 ForcedDestination = None
 ForcedDepth = None
@@ -793,6 +815,24 @@ else :
     if len(sys.argv) >= 3 :
         ForcedDestination = sys.argv[2].upper()
         print ("Forced Destination : ", ForcedDestination)
+    if len(sys.argv) >= 4 :
+        index = 3
+        while (index+1 < len(sys.argv)) :
+            if (sys.argv[index] == "-b") :
+                node = sys.argv[index+1].upper()
+                if (node in path_db.nodes()) :
+                    boosterList[node] = int(sys.argv[index+2])
+                index += 3
+                continue
+            if (sys.argv[index] == "-m") :                
+                maxSolutions = int(sys.argv[index+1])
+                print ("Max Solutions : ", maxSolutions)
+                index += 2
+                continue
+                
+print ("BoosterList" , boosterList)                    
+            
+            
         
 
 
