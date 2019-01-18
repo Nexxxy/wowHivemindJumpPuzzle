@@ -281,6 +281,21 @@
           <attvalue for="0" value="+" />
         </attvalues>
       </edge>
+      <edge id="0" source="E8" target="F1">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="1" source="E8" target="F8">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="0" source="E9" target="E8">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
       <edge id="0" source="F3" target="F7">
         <attvalues>
           <attvalue for="0" value="+" />
@@ -297,6 +312,11 @@
         </attvalues>
       </edge>
       <edge id="34" source="F6" target="F3">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="0" source="F8" target="F3">
         <attvalues>
           <attvalue for="0" value="+" />
         </attvalues>
@@ -337,6 +357,16 @@
         </attvalues>
       </edge>
       <edge id="1" source="G7" target="F4">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="0" source="G8" target="H6">
+        <attvalues>
+          <attvalue for="0" value="+" />
+        </attvalues>
+      </edge>
+      <edge id="1" source="G8" target="H2">
         <attvalues>
           <attvalue for="0" value="+" />
         </attvalues>
