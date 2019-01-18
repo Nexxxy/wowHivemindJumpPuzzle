@@ -92,6 +92,15 @@ def get_available_paths_from_player(field, pLocs, player) :
                     availablePathes.append("S")
     return sorted(availablePathes)
 
+def loadBoosterFile(boosterfile, boosterList) :
+    with open(boosterfile) as f:
+        content = f.readlines()
+        
+    for line in content :
+        line = line.strip()
+        value = line.split(":")
+        boosterList[value[0]] = int(value[1])
+    return
 
 
 def printField(field, pLocs) :
@@ -823,6 +832,10 @@ else :
                 if (node in path_db.nodes()) :
                     boosterList[node] = int(sys.argv[index+2])
                 index += 3
+                continue
+            if (sys.argv[index] == "-bf") :
+                loadBoosterFile(sys.argv[index+1], boosterList)
+                index += 2
                 continue
             if (sys.argv[index] == "-m") :                
                 maxSolutions = int(sys.argv[index+1])

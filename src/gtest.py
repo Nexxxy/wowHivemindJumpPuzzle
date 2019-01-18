@@ -5,6 +5,7 @@ Created on 10.01.2019
 '''
 
 import networkx as nx
+import os
 
 def call_test(liste) :
     liste.append(6)
@@ -48,5 +49,22 @@ if (type(y) is list) :
     print ("liste")
 else :
     print ("keine liste")
+    
+path_db = nx.read_gexf("path.gexf")
+
+content = ""
+
+for node in path_db.nodes() :
+    #print ("calc:",node)
+    if node == "S" :
+        continue
+    lenToNode = len(list(nx.shortest_path(path_db, "A5", node)))
+    print ("A5","to",node, ":", lenToNode)
+    content += node + ":" + str(lenToNode) + "\n"
+
+
+with open('./output.txt',"a") as f1:
+    f1.write(content)    
+    
 
 
