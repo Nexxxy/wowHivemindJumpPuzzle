@@ -599,6 +599,11 @@
           <attvalue for="0" value="-" />
         </attvalues>
       </edge>
+      <edge id="0" source="D1" target="G3">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
       <edge id="0" source="D2" target="B1">
         <attvalues>
           <attvalue for="0" value="-" />
@@ -825,6 +830,11 @@
         </attvalues>
       </edge>
       <edge id="0" source="F6" target="E6">
+        <attvalues>
+          <attvalue for="0" value="-" />
+        </attvalues>
+      </edge>
+      <edge id="0" source="F6" target="B1">
         <attvalues>
           <attvalue for="0" value="-" />
         </attvalues>
