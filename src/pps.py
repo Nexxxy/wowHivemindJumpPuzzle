@@ -102,6 +102,17 @@ def loadBoosterFile(boosterfile, boosterList) :
         boosterList[value[0]] = int(value[1])
     return
 
+def loadBoosterFileWithDiff(boosterfile, boosterList, diffBoosterList) :
+    with open(boosterfile) as f:
+        content = f.readlines()
+        
+    for line in content :
+        line = line.strip()
+        value = line.split(":")
+        if (value[0] in diffBoosterList) :
+            boosterList[value[0]] = int(value[1])
+    return
+
 
 def printField(field, pLocs) :
     lineLetter = ["A", "B", "C" , "D", "E" , "F" , "G" , "H", "I", "J"];
@@ -834,8 +845,16 @@ else :
                 index += 3
                 continue
             if (sys.argv[index] == "-bf") :
-                loadBoosterFile(sys.argv[index+1], boosterList)
+                boosterfile = sys.argv[index+1]  
+                diffbooster = set()              
                 index += 2
+                while (index+1 < len(sys.argv) and sys.argv[index] == "-l") :
+                    diffbooster.add(sys.argv[index+1].upper())
+                    index += 2
+                if (len(diffbooster) == 0) :                                        
+                    loadBoosterFile(boosterfile, boosterList)
+                else :
+                    loadBoosterFileWithDiff(boosterfile, boosterList, diffbooster)
                 continue
             if (sys.argv[index] == "-m") :                
                 maxSolutions = int(sys.argv[index+1])
