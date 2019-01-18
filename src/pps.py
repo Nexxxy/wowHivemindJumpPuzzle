@@ -16,6 +16,7 @@ import datetime
 #sys.setrecursionlimit(10**6)
 
 import sys
+from xmlrpc.client import MAXINT
 sys.setrecursionlimit(999999)
 
 
@@ -486,6 +487,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     depth = 0
     newPlattforms = []    
     itcounter = 0
+    bestSolutionDepth = MAXINT
 
     # ok first generate rootNode !
     rootNode = hashDics(field, pLocs)
@@ -625,12 +627,18 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                     #quit if there is a maxsolution option set
                     if (maxSolutions != None) :
                         if len(newPlattforms) >= maxSolutions :
-                            running = False                   
+                            running = False
+                    # save best solution depth
+                    if (depth < bestSolutionDepth) :
+                        bestSolutionDepth = depth                                       
                 
                 if (alreadyVisited) :
                     break
                 if (depth >= depthsearchMAX) :
-                    break               
+                    break
+                if (depthWatcher and depth > bestSolutionDepth) : 
+                    break
+                               
                 #print ("-", depth)  
                 if targetNode in boosterList.keys() and targetNode not in collectedBoosters:
                     depthsearchMAX += boosterList[targetNode]
@@ -812,10 +820,10 @@ boosterList = {} # "D6" : 4
 
 
 ############################################################################## Options
-enableDropping = False
-
+enableDropping = False              # player can drop off that plattform
 ForcedDestination = None
 ForcedDepth = None
+depthWatcher = True                 # if this is True we gonna reduce the depth to the best current found solutions depth
 
 
 playerList = [p1,p2,p3,p4,p5]
