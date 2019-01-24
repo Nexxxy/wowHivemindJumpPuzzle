@@ -173,7 +173,7 @@ def generate_DB_pathes ():
 
 def generate_empty_node_graph (filename):
     g = nx.DiGraph()
-    lineLetter = ["A", "B", "C" , "D", "E" , "F" , "G" , "H"];
+    lineLetter = ["A", "B", "C" , "D", "E" , "F" , "G" , "H", "I", "J"];
     g.add_node("S")
 
     for line in range(len(lineLetter)) :
@@ -642,6 +642,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                 #print ("-", depth)  
                 if targetNode in boosterList.keys() and targetNode not in collectedBoosters:
                     depthsearchMAX += boosterList[targetNode]
+                    #depthsearchMAX = depth + boosterList[targetNode]
                     collectedBoosters.add(targetNode)
                           
                 bruteTree[newNode] = {parentEntry : curNode, fieldEntry : field, pLocsEntry : pLocs, depthEntry : depth, maxDepthEntry : depthsearchMAX, collectedBoosterEntry : collectedBoosters }               
@@ -842,6 +843,8 @@ else :
         print ("Forced Depth : ", ForcedDepth)
     if len(sys.argv) >= 3 :
         ForcedDestination = sys.argv[2].upper()
+        if ForcedDestination == "XX" :
+            ForcedDestination = None                        
         print ("Forced Destination : ", ForcedDestination)
     if len(sys.argv) >= 4 :
         index = 3

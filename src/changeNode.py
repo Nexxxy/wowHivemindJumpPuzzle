@@ -107,12 +107,19 @@ while (True) :
             for edgepath in spawn_db.edges() :
                 spawn_db[edgepath[0]][edgepath[1]]["id"] = index        
                 index += 1
+                
+            
+            
             nx.write_gexf(spawn_db,spawn_db_filename)
             nx.write_gexf(remove_db,remove_db_filename)
             continue;
         
     node = node.upper()
     if exists_node(node) :
+        if node not in spawn_db.nodes() :
+            spawn_db.add_node(node)
+        if node not in remove_db.nodes() :
+            remove_db.add_node(node)
         edit_node(node)
     else :
         print ("exiting, didnt find your node")
