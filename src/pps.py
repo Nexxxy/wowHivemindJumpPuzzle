@@ -510,7 +510,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
     toDoList = getNewEmptyToDoList()
     bruteTree = {}
     depth = 0
-    newPlattforms = []    
+    global newPlattforms
     itcounter = 0
     bestSolutionDepth = MAXINT
 
@@ -640,7 +640,7 @@ def do_nonrecursive_bruteforce(brute_graph, depthsearchMAX) :
                 # check if we found a new plattform !
                 if (weFoundSomething) :
                     #print info
-                    print ("\r", len(newPlattforms), end="")
+                    print ("\r", len(newPlattforms)," @ ", bestSolutionDepth , "                               ", end="")
                     sys.stdout.flush()                                       
                     
                     newLoc = "NP:" +pLocs[p]  
@@ -723,7 +723,7 @@ def getPathTo(brute_graph, sourceNode, sinkNode) :
 #generate_empty_node_graph("remove.gexf")
 
 
-def main() :   
+def main() :  
 
     # print("Moving : ", move_player(field, pLocs, p1, forward));
     # printField(field, pLocs)
@@ -742,11 +742,15 @@ def main() :
     retlist = []       
     
     #retList = do_recursive_bruteforce(None, None, None, field, pLocs, brute_graph)
-    if (ForcedDepth == None ) :
-    ###################################################################################################################################################
-        retlist = do_nonrecursive_bruteforce(brute_graph, 35)
-    else :
-        retlist = do_nonrecursive_bruteforce(brute_graph, ForcedDepth)
+    try :
+        if (ForcedDepth == None ) :    
+            retlist = do_nonrecursive_bruteforce(brute_graph, 35)
+        else :
+            retlist = do_nonrecursive_bruteforce(brute_graph, ForcedDepth)
+    except KeyboardInterrupt:
+        retlist = newPlattforms
+    finally:
+        print ("fin")
     
     if (len(retlist) == 0) :
         print ("No solutions ..")
@@ -844,6 +848,7 @@ collectedBoosterEntry = "collectedBoosters"
 isFinished = "isFinished"
 maxSolutions = None
 boosterList = {} # "D6" : 4
+newPlattforms = []
 
 
 
@@ -902,10 +907,15 @@ else :
 
 print ("Forced Depth : ", ForcedDepth)                
 #print ("BoosterList" , boosterList)
-                    
-        
-    
-main()    
+
+
+main()
+
+
+ 
+
+
+
             
         
 
