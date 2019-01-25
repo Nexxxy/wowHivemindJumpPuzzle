@@ -17,6 +17,7 @@ import datetime
 
 import sys
 from xmlrpc.client import MAXINT
+from dataclasses import fields
 sys.setrecursionlimit(999999)
 
 
@@ -93,10 +94,25 @@ def get_available_paths_from_player(field, pLocs, player) :
                     availablePathes.append("S")
     return sorted(availablePathes)
 
+def readDepthFromFile(fileContentList) :
+    global ForcedDepth      # load global var
+    # read depth in first line
+    line = fileContentList[0]
+    line = line.strip()
+    value = line.split(":")
+    if (value[0] != "depth") :
+        print ("couldnt find depth in line 1 in boosterfile : ", boosterfile)
+        exit()
+    if ForcedDepth == None :
+        ForcedDepth = int(value[1])         ## set default forced depth from file
+    del fileContentList[0]
+
 def loadBoosterFile(boosterfile, boosterList) :
     with open(boosterfile) as f:
-        content = f.readlines()
-        
+        content = f.readlines()       
+
+    readDepthFromFile(content)
+    
     for line in content :
         line = line.strip()
         value = line.split(":")
@@ -107,10 +123,12 @@ def loadBoosterFileWithDiff(boosterfile, boosterList, diffBoosterList) :
     with open(boosterfile) as f:
         content = f.readlines()
         
+    readDepthFromFile(content)
+     
     for line in content :
         line = line.strip()
         value = line.split(":")
-        if (value[0] in diffBoosterList) :
+        if (value[0] in diffBoosterList) :          # this time compare with diffBoosterList and exclude everything else
             boosterList[value[0]] = int(value[1])
     return
 
@@ -353,12 +371,19 @@ def move_player_to(field,pLocs,player,targetLoc) :
         for p in playerList :
             execute_spawns(field, pLocs[p])
     
-        if (a == False and b == False and ForcedDestination == None) :
+        if (a == False and b == False and len(ForcedDestinationList) == 0) :
             print ("got no information about", targetLoc)
             return True, True
-        elif (ForcedDestination != None and ForcedDestination == targetLoc) :
-            #print ("found path to", targetLoc)
-            return True, True
+        elif (len(ForcedDestinationList) > 0 and targetLoc in ForcedDestinationList) :
+            # ok iterate over it and test some needed locations
+            foundSolution = True
+            for ForcedDestination in ForcedDestinationList :                
+                if ForcedDestination not in pLocs.values() :
+                    foundSolution = False
+            if foundSolution :
+                return True, True
+            else :
+                pass
         else :
             pass
     else : # targetLoc == "S" 
@@ -791,8 +816,10 @@ def main() :
     #print (hashDics(field, pLocs))
 
 
-# recurse in greedy thread
 
+#########################################################################################################################################
+########################################################## Start ########################################################################
+#########################################################################################################################################
 p1 = "1"
 p2 = "2"
 p3 = "3"
@@ -822,7 +849,7 @@ boosterList = {} # "D6" : 4
 
 ############################################################################## Options
 enableDropping = False              # player can drop off that plattform
-ForcedDestination = None
+ForcedDestinationList = set()
 ForcedDepth = None
 depthWatcher = True                 # if this is True we gonna reduce the depth to the best current found solutions depth
 
@@ -837,53 +864,57 @@ remove_db = nx.read_gexf("remove.gexf")
 
 if (len(sys.argv) == 1) :
     pass
-else :
-    if len(sys.argv) >= 2 :       
-        ForcedDepth = int(sys.argv[1])
-        print ("Forced Depth : ", ForcedDepth)
-    if len(sys.argv) >= 3 :
-        ForcedDestination = sys.argv[2].upper()
-        if ForcedDestination == "XX" :
-            ForcedDestination = None                        
-        print ("Forced Destination : ", ForcedDestination)
-    if len(sys.argv) >= 4 :
-        index = 3
-        while (index+1 < len(sys.argv)) :
-            if (sys.argv[index] == "-b") :
-                node = sys.argv[index+1].upper()
-                if (node in path_db.nodes()) :
-                    boosterList[node] = int(sys.argv[index+2])
-                index += 3
-                continue
-            if (sys.argv[index] == "-bf") :
-                boosterfile = sys.argv[index+1]  
-                diffbooster = set()              
+else :   
+    index = 1
+    while (index+1 < len(sys.argv)) :        
+        if (sys.argv[index] == "-p") :
+            ForcedDestinationList.add(sys.argv[index+1].upper())        
+            print ("Forced Destination : ", ForcedDestinationList)
+            index += 2
+            continue
+        if (sys.argv[index] == "-d") :       
+            ForcedDepth = int(sys.argv[index+1])              
+            index += 2
+            continue  
+        if (sys.argv[index] == "-b") :
+            node = sys.argv[index+1].upper()
+            if (node in path_db.nodes()) :
+                boosterList[node] = int(sys.argv[index+2])
+            index += 3
+            continue
+        if (sys.argv[index] == "-bf") :
+            boosterfile = sys.argv[index+1]  
+            diffbooster = set()              
+            index += 2
+            while (index+1 < len(sys.argv) and sys.argv[index] == "-l") :
+                diffbooster.add(sys.argv[index+1].upper())
                 index += 2
-                while (index+1 < len(sys.argv) and sys.argv[index] == "-l") :
-                    diffbooster.add(sys.argv[index+1].upper())
-                    index += 2
-                if (len(diffbooster) == 0) :                                        
-                    loadBoosterFile(boosterfile, boosterList)
-                else :
-                    loadBoosterFileWithDiff(boosterfile, boosterList, diffbooster)
-                continue
-            if (sys.argv[index] == "-m") :                
-                maxSolutions = int(sys.argv[index+1])
-                print ("Max Solutions : ", maxSolutions)
-                index += 2
-                continue
-                
-print ("BoosterList" , boosterList)                    
-            
+            if (len(diffbooster) == 0) :                                        
+                loadBoosterFile(boosterfile, boosterList)
+            else :
+                loadBoosterFileWithDiff(boosterfile, boosterList, diffbooster)
+            continue
+        if (sys.argv[index] == "-m") :                
+            maxSolutions = int(sys.argv[index+1])
+            print ("Max Solutions : ", maxSolutions)
+            index += 2
+            continue
+
+print ("Forced Depth : ", ForcedDepth)                
+#print ("BoosterList" , boosterList)
+                    
+        
+    
+main()    
             
         
 
 
-sys.setrecursionlimit(9999999)
-threading.stack_size(0xF000000)
-t = threading.Thread(target=main())
-t.start()
-t.join()
+# sys.setrecursionlimit(9999999)
+# threading.stack_size(0xF000000)
+# t = threading.Thread(target=main())
+# t.start()
+# t.join()
 
 
 
